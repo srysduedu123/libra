@@ -8,6 +8,7 @@ import common.exception.ZKOperationFailedException;
 import common.util.LibraZKClient;
 import common.util.LibraZKPathUtil;
 import org.apache.zookeeper.*;
+import org.apache.zookeeper.Watcher.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +64,8 @@ public class ClientWatcher implements Watcher {
         workerVersion = 0;
         projectVersion = 0;
         taskAndWorkerVersion = 0;
-        taskWorkerList = new ArrayList<>(0);
-        taskAndWorkerPairList = new ArrayList<>(0);
+        taskWorkerList = new ArrayList<String>(0);
+        taskAndWorkerPairList = new ArrayList<TaskAndWorker>(0);
         executorFactory = new ExecutorFactory();
         rebalancer = new DefaultRebalancer();
         register();
@@ -94,9 +95,9 @@ public class ClientWatcher implements Watcher {
                         ++workerVersion;
                         taskWorkerList = tempTaskWorkerList;
                     } else {
-                        Set<String> currentWorkerSet = new HashSet<>();
+                        Set<String> currentWorkerSet = new HashSet<String>();
                         currentWorkerSet.addAll(taskWorkerList);
-                        Set<String> newWorkerSet = new HashSet<>();
+                        Set<String> newWorkerSet = new HashSet<String>();
                         newWorkerSet.addAll(tempTaskWorkerList);
                         if (!currentWorkerSet.containsAll(newWorkerSet)) {
                             ++workerVersion;
@@ -176,7 +177,7 @@ public class ClientWatcher implements Watcher {
                     String projectName = projectStat.getMyProjectName();
                     zkClient.checkAndCreateNode(projectStat.getMyTaskRoot(), new byte[0], CreateMode.PERSISTENT);
                     List<String> taskList = zkClient.getChildren(projectStat.getMyTaskRoot());
-                    List<TaskAndWorker> tempTaskAndWorkerList = new LinkedList<>();
+                    List<TaskAndWorker> tempTaskAndWorkerList = new LinkedList<TaskAndWorker>();
                     String workerForTask;
                     for (String taskName : taskList) {
                         try {
@@ -220,12 +221,12 @@ public class ClientWatcher implements Watcher {
             LOG.info("checkAndOwnTasks");
             checkState(projectVersion, taskAndWorkerVersion, workerVersion);
             String taskOwner;
-            LinkedList<String> taskToBeOwned = new LinkedList<>();
+            LinkedList<String> taskToBeOwned = new LinkedList<String>();
             for (String myTask : myTasks) {
                 taskToBeOwned.add(myTask);
             }
             String myTask;
-            Set<String> workerSet = new HashSet<>();
+            Set<String> workerSet = new HashSet<String>();
             while (taskToBeOwned.size() > 0) {
                 workerSet.clear();
                 workerSet.addAll(taskWorkerList);
@@ -267,7 +268,7 @@ public class ClientWatcher implements Watcher {
             }
             LOG.info("forceReleaseOwnedTasks");
             int retry = WorkerConfig.getIntProperty(WorkerConfig.RETRY_TIMES_KEY);
-            LinkedList<String> ownedTasks = new LinkedList<>();
+            LinkedList<String> ownedTasks = new LinkedList<String>();
             ownedTasks.addAll(ownedTaskList);
             String ownedTask;
             while (ownedTasks.size() > 0) {
@@ -355,7 +356,7 @@ public class ClientWatcher implements Watcher {
             @Override
             public void run() {
                 synchronized (rebalanceLock) {
-                    LinkedList<String> ownedTaskList = new LinkedList<>();
+                    LinkedList<String> ownedTaskList = new LinkedList<String>();
                     try {
                         executorFactory.pauseCurrentExecutor(projectName);
                         try {
@@ -535,7 +536,11 @@ public class ClientWatcher implements Watcher {
                             }
                         }
                     }
-                }
+                }else if (watchedEvent.getType() == Event.EventType.NodeDeleted&& watchedEvent.getPath().contains(LibraZKPathUtil.ALL_WORKER_ROOT)) {	
+                	//delete from all worker list
+					forceReleaseOwnedTasks(projectStat.getMyProjectName(), executorFactory.getCurrentTaskList(), -1);
+					deleteMyIdFromActiveWorkerRoot(projectStat.getMyProjectName());
+				}
             } catch (KeeperException | InterruptedException ex) {
                 ex.printStackTrace();
             }
@@ -544,8 +549,10 @@ public class ClientWatcher implements Watcher {
 
     public static void main(String args[]) {
         try {
-            ClientWatcher watcher = new ClientWatcher("worker3", "211.87.224.213:2181", 3000);
-            watcher.start();
+        	ClientWatcher watcher1 = new ClientWatcher("worker1","192.168.0.102:2181", 10000);
+			watcher1.start();
+			ClientWatcher watcher2 = new ClientWatcher("worker2","192.168.0.102:2181", 10000);
+			watcher2.start();	
             Thread.sleep(6000000);
         } catch (IOException | InterruptedException | KeeperException | ConfigException e) {
             e.printStackTrace();

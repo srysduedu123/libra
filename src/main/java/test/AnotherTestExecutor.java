@@ -62,7 +62,7 @@ public class AnotherTestExecutor implements IExecutor {
 
     @Override
     public String getProjectName() {
-        return "b";
+        return "project2";
     }
 
     @Override

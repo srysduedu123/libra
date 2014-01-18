@@ -24,7 +24,15 @@ public class LibraZKClient {
         zooKeeper = new ZooKeeper(hosts, sessionTimeout, watcher);
         this.watcher = watcher;
     }
-
+    
+  //add by llzhang
+    public boolean checkNodeExist(String path) throws KeeperException, InterruptedException{
+    	Stat stat = zooKeeper.exists(path,watcher);
+    	if(null == stat)
+    		return false;
+    	else
+    		return true;
+    }
 
     public boolean checkAndCreateNode(String path, byte[] data, CreateMode createMode) throws KeeperException, InterruptedException {
         path = path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
@@ -83,6 +91,17 @@ public class LibraZKClient {
             return true;
         }
         return false;
+    }
+    
+  //add by llzhang
+    public boolean setDataString(String path,String data) throws KeeperException, InterruptedException{
+    	Stat stat=zooKeeper.exists(path, watcher);
+    	if(null == stat)
+    		return false;
+    	else{
+    		zooKeeper.setData(path, data.getBytes(), stat.getVersion());
+    		return true;
+    	}   		  	
     }
 
     public void close() throws InterruptedException {

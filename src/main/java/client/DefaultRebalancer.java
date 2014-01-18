@@ -20,12 +20,12 @@ public class DefaultRebalancer implements IRebalancer {
     @Override
     public List<String> calculateMyTask(String myId, List<TaskAndWorker> immutableTaskAndWorkerList, List<String> immutableWorkerList) throws OperationOutOfDateException {
         if (immutableWorkerList.size() == 0) {
-            return new ArrayList<>();
+            return new ArrayList<String>();
         }
-        ArrayList<String> workerList = new ArrayList<>(immutableWorkerList.size());
+        ArrayList<String> workerList = new ArrayList<String>(immutableWorkerList.size());
         workerList.addAll(immutableWorkerList);
         Collections.sort(workerList);
-        ArrayList<String> taskList = new ArrayList<>(immutableTaskAndWorkerList.size());
+        ArrayList<String> taskList = new ArrayList<String>(immutableTaskAndWorkerList.size());
         for (TaskAndWorker tw : immutableTaskAndWorkerList) {
             taskList.add(tw.task);
         }
@@ -34,7 +34,7 @@ public class DefaultRebalancer implements IRebalancer {
             throw new OperationOutOfDateException("Cannot find myId in workerList");
         }
         int workerNum = workerList.size();
-        List<String> myTaskList = new LinkedList<>();
+        List<String> myTaskList = new LinkedList<String>();
         for (int i = 0; i < taskList.size(); i++) {
             if (i % workerNum == myOrder) {
                 myTaskList.add(taskList.get(i));
@@ -51,7 +51,7 @@ public class DefaultRebalancer implements IRebalancer {
 
     private static class WorkerAndTaskList {
         String worker;
-        LinkedList<String> taskList = new LinkedList<>();
+        LinkedList<String> taskList = new LinkedList<String>();
 
         public WorkerAndTaskList(String worker) {
             this.worker = worker;

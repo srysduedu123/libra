@@ -28,11 +28,11 @@ public class ExecutorFactory {
 
 
     public ExecutorFactory() {
-        executorMap = new HashMap<>();
+        executorMap = new HashMap<String, IExecutor>();
         currentState = state.UNLOADED;
         taskVersion = 0;
-        executorMap.put("a", new TestExecutor());
-        executorMap.put("b", new AnotherTestExecutor());
+        executorMap.put("project1", new TestExecutor());
+        executorMap.put("project2", new AnotherTestExecutor());
     }
 
     public synchronized void loadExecutor(String projectName) throws ExecutorException {
@@ -78,7 +78,7 @@ public class ExecutorFactory {
 
     public synchronized List<String> getCurrentTaskList() {
         if (null == currentExecutor || null == currentExecutor.getMyTaskList()) {
-            return new ArrayList<>(0);
+            return new ArrayList<String>(0);
         } else {
             return currentExecutor.getMyTaskList();
         }

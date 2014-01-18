@@ -15,8 +15,8 @@ public class TaskAndWorker implements Comparable<TaskAndWorker> {
         this.task = task;
         this.worker = worker;
     }
-
-    @Override
+    
+	@Override
     public int compareTo(TaskAndWorker o) {
         return task.compareTo(o.task);
     }
