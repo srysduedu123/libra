@@ -538,8 +538,13 @@ public class ClientWatcher implements Watcher {
                     }
                 }else if (watchedEvent.getType() == Event.EventType.NodeDeleted&& watchedEvent.getPath().contains(LibraZKPathUtil.ALL_WORKER_ROOT)) {	
                 	//delete from all worker list
-					forceReleaseOwnedTasks(projectStat.getMyProjectName(), executorFactory.getCurrentTaskList(), -1);
-					deleteMyIdFromActiveWorkerRoot(projectStat.getMyProjectName());
+					try {
+						forceReleaseOwnedTasks(projectStat.getMyProjectName(), executorFactory.getCurrentTaskList(), -1);
+						deleteMyIdFromActiveWorkerRoot(projectStat.getMyProjectName());
+					} catch (ZKOperationFailedException
+							| OperationOutOfDateException e) {
+						e.printStackTrace();
+					}
 				}
             } catch (KeeperException | InterruptedException ex) {
                 ex.printStackTrace();
