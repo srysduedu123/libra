@@ -4,3 +4,19 @@
 *.jar
 *.war
 *.ear
+
+# Gradle Files #
+.gradle/*
+
+# Build Files #
+build/*
+
+# Eclipse Files#
+.settings/*
+.classpath
+.project
+
+# Idea Files #
+*.iml
+*.ipr
+*.iws
