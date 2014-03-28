@@ -8,7 +8,6 @@ import common.exception.ZKOperationFailedException;
 import common.util.LibraZKClient;
 import common.util.LibraZKPathUtil;
 import org.apache.zookeeper.*;
-import org.apache.zookeeper.Watcher.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -551,16 +550,62 @@ public class ClientWatcher implements Watcher {
             }
         }
     }
-
+    
+    private static void showUsage(){
+		System.out.println("Usage: -n workername [-t timeout(default:10000)]|[-h host (defalut:localhost)]");
+		System.exit(1);
+    }
+    
     public static void main(String args[]) {
-        try {
-        	ClientWatcher watcher1 = new ClientWatcher("worker1","192.168.0.102:2181", 10000);
-			watcher1.start();
-			ClientWatcher watcher2 = new ClientWatcher("worker2","192.168.0.102:2181", 10000);
-			watcher2.start();	
-            Thread.sleep(6000000);
-        } catch (IOException | InterruptedException | KeeperException | ConfigException e) {
-            e.printStackTrace();
-        }
+	        try {
+	    		String workerName = null;
+	    		String host = "localhost:2181";
+	    		int timeout = 10000;
+	    		if(args.length == 2){
+	    			if("-n".equals(args[0])){
+	    				workerName = args[1];
+	    			}else{
+	    				showUsage();
+	    			}
+	    		}else if(args.length == 4){
+	    			if("-n".equals(args[0]) && "-t".equals(args[2])){
+	    				workerName = args[1];
+	    				timeout = Integer.valueOf(args[3]);
+	    			}else if("-n".equals(args[0]) && "-h".equals(args[2])){
+	    				workerName = args[1];
+	    				host = args[3];
+	    			}else{
+	    				showUsage();
+	    			}
+	    		}else if(args.length == 6){
+	    			
+	    			if("-n".equals(args[0]) && "-t".equals(args[2]) && "-h".equals(args[4])){
+	    				workerName = args[1];
+	    				timeout = Integer.valueOf(args[3]);
+	    				host = args[5];
+	    			}else{
+	    				showUsage();
+	    			}
+	    			
+	    		}else{
+	    			showUsage();
+	    		}
+	        	ClientWatcher watcher = new ClientWatcher(workerName, host , timeout);
+				watcher.start();
+				System.out.println("INFO: Worker " + workerName + " at " + host +" is Running... ");
+				Thread.sleep(6000000);
+				System.out.println("INFO: Worker " + workerName + "exit.");
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }  catch (KeeperException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ConfigException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }

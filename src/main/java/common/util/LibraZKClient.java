@@ -103,7 +103,17 @@ public class LibraZKClient {
     		return true;
     	}   		  	
     }
-
+    
+    //add by llzhang
+    public long getNodeTime(String path) throws KeeperException, InterruptedException{
+    	long time=0;
+    	Stat stat = zooKeeper.exists(path,watcher);
+    	if(null != stat){
+    	  time=stat.getCtime();
+    	}
+    	return time;
+    }
+    
     public void close() throws InterruptedException {
         zooKeeper.close();
     }
