@@ -3,6 +3,7 @@ package server;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.zookeeper.CreateMode;
@@ -77,8 +78,22 @@ public class LibraWatcher implements Watcher{
 	 */
 	public List<String> getProjectWorkers(String projectName) throws KeeperException, InterruptedException{
 		List<String> workers = null;
+		List<String> allWorkers = null;
+		List<String> activeWorkers = new LinkedList<String>();
 		try{
+			allWorkers = getAllWorkers();
 			workers = zkClient.getChildren(LibraZKPathUtil.genActiveWorkerRootPath(projectName));
+			if(workers != null){
+				if(allWorkers != null){
+					for(String worker : allWorkers){
+						if(workers.contains(worker)){
+							activeWorkers.add(worker);
+						}
+					}
+				}
+				return activeWorkers;
+			}
+			
 		}catch(KeeperException.NoNodeException e){
 			
 		}
@@ -214,7 +229,7 @@ public class LibraWatcher implements Watcher{
 	}
 	
 	/**
-	 * 
+	 * get worker startup time
 	 * @param workerName
 	 * @return if 0 ,false
 	 * @throws KeeperException
@@ -227,6 +242,24 @@ public class LibraWatcher implements Watcher{
 		else 
 			return 0;
 			
+	}
+	
+	/**
+	 * get worker add to project time
+	 * @param projectName
+	 * @param workerName
+	 * @return 
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public long getProjectWorkerTime(String projectName, String workerName) throws KeeperException, InterruptedException{
+		String projectWorkerPath = LibraZKPathUtil.genMyActiveWorkerPath(workerName, projectName);
+		if(zkClient.checkNodeExist(projectWorkerPath)){
+			return (new Date().getTime()-zkClient.getNodeTime(projectWorkerPath));
+		}else{
+			return 0;
+		}
+		
 	}
 	public void printStatus() throws KeeperException, InterruptedException{
 		
@@ -247,6 +280,7 @@ public class LibraWatcher implements Watcher{
 				if(workers != null && workers.size() != 0){
 					for(String worker : workers){
 						LOG.info("%%%WorkerName:" + worker);
+						LOG.info("%%%ProWorkerTime:" + getTime(getProjectWorkerTime(project, worker)));
 					}
 				}else{
 					LOG.info("%%% EMPTY WORKER %%%");
@@ -295,12 +329,7 @@ public class LibraWatcher implements Watcher{
 	}
 	public static void main(String[] args) throws IOException, KeeperException, InterruptedException{
 		
-		LibraWatcher watcher = new LibraWatcher("localhost:2181", 10000);
-		watcher.addProject("project1");
-//		watcher.addTask("project2", "ok");
-//		LOG.info("ASS:" + watcher.assignWorker("worker1", "project1"));	
-//		watcher.evacuateWorker("worker1", "project1");
-		
+		LibraWatcher watcher = new LibraWatcher("192.168.238.10:2181", 10000);
 		watcher.printStatus();
 		
 	}
