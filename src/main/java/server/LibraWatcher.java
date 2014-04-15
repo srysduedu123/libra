@@ -87,7 +87,14 @@ public class LibraWatcher implements Watcher{
 				if(allWorkers != null){
 					for(String worker : allWorkers){
 						if(workers.contains(worker)){
-							activeWorkers.add(worker);
+							if(projectName.equals(getProjectNameWithWorker(worker))){
+								activeWorkers.add(worker);
+							}else{	//出现不一致
+								LOG.info("conflict: worker still exist in project,but worker's nodedata clear.");
+								//zkClient.checkAndDeleteNode(LibraZKPathUtil.genMyActiveWorkerPath(worker, projectName));
+								//if delete would be error,when worker adding, this path isn't exist,but will be created later.
+								
+							}
 						}
 					}
 				}
@@ -125,6 +132,18 @@ public class LibraWatcher implements Watcher{
 		return taskList;
 		
 	}
+	
+	/**
+	 * 通过worker获取项目名
+	 * @param workerName
+	 * @return
+	 * @throws InterruptedException 
+	 * @throws KeeperException 
+	 */
+	public String getProjectNameWithWorker(String workerName) throws KeeperException, InterruptedException{
+		return zkClient.checkAndGetDataString(LibraZKPathUtil.genMyAllWorkerPath(workerName));
+	}
+	
 	/**
 	 * 
 	 * @param projectName
@@ -159,7 +178,11 @@ public class LibraWatcher implements Watcher{
 				List<String> workers = getProjectWorkers(projectName);
 				if(workers != null){
 					for(String worker : workers){
-						result &= evacuateWorker(worker, projectName);
+						if(projectName.equals(getProjectNameWithWorker(worker))){
+							result &= evacuateWorker(worker, projectName);
+						}else{	//confilct
+							zkClient.checkAndDeleteNode(LibraZKPathUtil.genMyActiveWorkerPath(worker, projectName));
+						}
 					}
 				}
 				zkClient.checkAndDeleteNode(LibraZKPathUtil.genActiveWorkerRootPath(projectName));
