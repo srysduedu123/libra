@@ -445,9 +445,11 @@ public class ClientWatcher implements Watcher {
         int retry = WorkerConfig.getIntProperty(WorkerConfig.RETRY_TIMES_KEY);
         while (retry > 0) {
             try {
-                zkClient.compareAndUpdateData(myAllWorkerPath, newProjectName, oldProjectName.getBytes(), false);
+               zkClient.compareAndUpdateData(myAllWorkerPath, newProjectName, oldProjectName.getBytes(), false);
+                break;	//return loop? fixed bug
             } catch (KeeperException | InterruptedException ex) {
                 ex.printStackTrace();
+                LOG.debug("Exception:" + retry);
                 --retry;
                 if (retry <= 0) {
                     throw new ZKOperationFailedException("Can not reset my task from " + newProjectName + " to " + oldProjectName);
@@ -534,6 +536,8 @@ public class ClientWatcher implements Watcher {
                                 forceExit();
                             }
                         }
+                    }else{
+                    	LOG.info("project version equal");
                     }
                 }else if (watchedEvent.getType() == Event.EventType.NodeDeleted&& watchedEvent.getPath().contains(LibraZKPathUtil.ALL_WORKER_ROOT)) {	
                 	//delete from all worker list
