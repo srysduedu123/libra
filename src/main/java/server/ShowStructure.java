@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.zookeeper.CreateMode;
@@ -12,10 +13,10 @@ import common.util.LibraZKClient;
 import common.util.LibraZKPathUtil;
 
 /**
- * Created with IntelliJ IDEA.
  * 
  * @author :SDU.llzhang
- * @version 1.0.0 Date: 14-1-17 Time: 3:00PM
+ * @version 1.0.0 
+ * Date: 14-1-17 Time: 3:00PM
  */
 public class ShowStructure implements Watcher {
 
@@ -28,7 +29,6 @@ public class ShowStructure implements Watcher {
 	private List<String> allWorkersList;
 	private List<String> myTasksList;
 	private List<String> myWorkersList;
-	private List<String> onWorkerTasksList;
 
 	public ShowStructure(String hosts, int sessionTimeout)
 			throws KeeperException, InterruptedException {
@@ -44,7 +44,6 @@ public class ShowStructure implements Watcher {
 	private void start() throws IOException, KeeperException,
 			InterruptedException {
 		zkClient = new LibraZKClient(hosts, sessionTimeout, this);
-		System.out.println("OK*************");
 	}
 
 	private void readStructure(String path) throws KeeperException,
@@ -96,8 +95,8 @@ public class ShowStructure implements Watcher {
 	}
 
 	public List<String> getWorkerTasks(String workerName)
-			throws KeeperException, InterruptedException, IOException
-	{
+			throws KeeperException, InterruptedException, IOException {
+        List<String> onWorkerTasksList = new LinkedList<>();
 		String projectName = zkClient.checkAndGetDataString(LibraZKPathUtil
 				.genMyAllWorkerPath(workerName));
 		workerAndTaskPair(LibraZKPathUtil.PROJECT_ROOT + "/" + projectName);

@@ -10,34 +10,34 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: xccui
+ * A ZK client for libra
+ * @author : xccui
  * Date: 13-10-10
- * Time: 下午9:27
+ * Time: 9:27
  */
 public class LibraZKClient {
     private static final Logger LOG = LoggerFactory.getLogger(LibraZKClient.class);
+
     private ZooKeeper zooKeeper;
     private Watcher watcher;
+    private String hosts;
+    private int sessionTimeout;
 
     public LibraZKClient(String hosts, int sessionTimeout, Watcher watcher) throws IOException {
         zooKeeper = new ZooKeeper(hosts, sessionTimeout, watcher);
+        this.hosts = hosts;
+        this.sessionTimeout = sessionTimeout;
         this.watcher = watcher;
     }
     
-  //add by llzhang
     public boolean checkNodeExist(String path) throws KeeperException, InterruptedException{
-    	Stat stat = zooKeeper.exists(path,watcher);
-    	if(null == stat)
-    		return false;
-    	else
-    		return true;
+    	return null != zooKeeper.exists(path,watcher);
     }
 
     public boolean checkAndCreateNode(String path, byte[] data, CreateMode createMode) throws KeeperException, InterruptedException {
         path = path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
         LOG.info("checkAndCreateNode - path:" + path);
-        Stat stat = zooKeeper.exists(path, this.watcher);
+        Stat stat = zooKeeper.exists(path, watcher);
         if (null == stat) {
             int lastSlash = path.lastIndexOf('/');
             boolean validSubPath = path.substring(0, lastSlash).length() > 1;
@@ -71,11 +71,11 @@ public class LibraZKClient {
 
     public List<String> getChildren(String path) throws KeeperException, InterruptedException {
         path = path.length() > 1 && path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
-        return Collections.unmodifiableList(zooKeeper.getChildren(path, this.watcher));
+        return Collections.unmodifiableList(zooKeeper.getChildren(path, watcher));
     }
 
     public String getDataString(String path, Stat stat) throws KeeperException, InterruptedException {
-        return new String(zooKeeper.getData(path, this.watcher, stat)).trim();
+        return new String(zooKeeper.getData(path, watcher, stat)).trim();
     }
 
     public String checkAndGetDataString(String path) throws KeeperException, InterruptedException {
@@ -85,6 +85,9 @@ public class LibraZKClient {
 
     public boolean compareAndUpdateData(String path, String comparedStr, byte[] data, boolean watch) throws KeeperException, InterruptedException {
         Stat stat = zooKeeper.exists(path, false);
+        if(null == stat) {
+            return false;
+        }
         String value = new String(zooKeeper.getData(path, watch, stat)).trim();
         if (value.equals(comparedStr)) {
             zooKeeper.setData(path, data, stat.getVersion());
@@ -93,9 +96,8 @@ public class LibraZKClient {
         return false;
     }
     
-  //add by llzhang
-    public boolean setDataString(String path,String data) throws KeeperException, InterruptedException{
-    	Stat stat=zooKeeper.exists(path, watcher);
+    public boolean setDataString(String path, String data) throws KeeperException, InterruptedException{
+    	Stat stat = zooKeeper.exists(path, watcher);
     	if(null == stat)
     		return false;
     	else{
@@ -104,17 +106,29 @@ public class LibraZKClient {
     	}   		  	
     }
     
-    //add by llzhang
-    public long getNodeTime(String path) throws KeeperException, InterruptedException{
-    	long time=0;
+    public long getNodeCreateTime(String path) throws KeeperException, InterruptedException{
     	Stat stat = zooKeeper.exists(path,watcher);
     	if(null != stat){
-    	  time=stat.getCtime();
+    	  return stat.getCtime();
     	}
-    	return time;
+    	return -1l;
     }
     
-    public void close() throws InterruptedException {
-        zooKeeper.close();
+    public synchronized void close() throws InterruptedException {
+        if(null != zooKeeper) {
+            zooKeeper.close();
+        }
+    }
+    public synchronized void reconnect() {
+        if(null != zooKeeper) {
+            try {
+                zooKeeper.close();
+                zooKeeper = new ZooKeeper(hosts, sessionTimeout, watcher);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

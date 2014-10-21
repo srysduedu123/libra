@@ -1,6 +1,5 @@
 package client;
 
-import common.entity.TaskAndWorker;
 import common.exception.OperationOutOfDateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,43 +7,30 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Created with IntelliJ IDEA.
- * User: xccui
+ * @author  xccui
  * Date: 13-10-12
- * Time: 下午9:17
- * To change this template use File | Settings | File Templates.
+ * Time: 9:17
  */
-public class DefaultRebalancer implements IRebalancer {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultRebalancer.class);
+public class DefaultRebalanceTool implements IRebalanceTool {
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultRebalanceTool.class);
 
     @Override
-    public List<String> calculateMyTask(String myId, List<TaskAndWorker> immutableTaskAndWorkerList, List<String> immutableWorkerList) throws OperationOutOfDateException {
+    public List<String> calculateMyTask(String myId, List<String> immutableTaskList, List<String> immutableWorkerList){
         if (immutableWorkerList.size() == 0) {
             return new ArrayList<String>();
         }
         ArrayList<String> workerList = new ArrayList<String>(immutableWorkerList.size());
         workerList.addAll(immutableWorkerList);
         Collections.sort(workerList);
-        ArrayList<String> taskList = new ArrayList<String>(immutableTaskAndWorkerList.size());
-        for (TaskAndWorker tw : immutableTaskAndWorkerList) {
-            taskList.add(tw.task);
-        }
         int myOrder = workerList.indexOf(myId);
-        if (-1 == myOrder) {
-            throw new OperationOutOfDateException("Cannot find myId in workerList");
-        }
         int workerNum = workerList.size();
         List<String> myTaskList = new LinkedList<String>();
-        for (int i = 0; i < taskList.size(); i++) {
+        for (int i = 0; i < immutableTaskList.size(); i++) {
             if (i % workerNum == myOrder) {
-                myTaskList.add(taskList.get(i));
+                myTaskList.add(immutableTaskList.get(i));
             }
         }
-        System.out.print("Calculated my tasks:");
-        for (String task : myTaskList) {
-            System.out.print(task + ",");
-        }
-        System.out.println();
+        LOG.info("Calculated my tasks: " + myTaskList);
         return myTaskList;
     }
 

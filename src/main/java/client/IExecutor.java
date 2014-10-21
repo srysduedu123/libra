@@ -3,11 +3,10 @@ package client;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: xccui
+ * Interface for project executor
+ * @author  xccui
  * Date: 13-10-9
- * Time: 下午5:04
- * To change this template use File | Settings | File Templates.
+ * Time: 17:04
  */
 public interface IExecutor {
     public void prepare();

@@ -1,20 +1,18 @@
 package common.util;
 
 /**
- * Created with IntelliJ IDEA.
- * User: xccui
+ * ZK path utility for libra
+ * @author  xccui
  * Date: 13-10-10
- * Time: 下午10:09
- * To change this template use File | Settings | File Templates.
+ * Time: 10:09
  */
 public class LibraZKPathUtil {
-    public static final String ROOT = "/starryLibra";
-    public static final String PROJECT_ROOT = "/starryLibra/projects";
+    public static final String ROOT = "/starry/Libra";
+    public static final String PROJECT_ROOT = ROOT + "/projects";
     public static final String ALL_WORKER_ROOT = ROOT + "/workers/all";
     public static final String CONFIG_ROOT = ROOT + "/config";
     public static final String UNSET_TASK_ROOT = ROOT + "/unsetTask";
     public static final String UNSET_ACTIVE_WORKER_ROOT = ROOT + "/unsetActiveWorker";
-    public static final String REBALANCE_MODE_PATH = CONFIG_ROOT + "/rebalanceMode";
 
     public static String genTaskRootPath(String projectName) {
         return PROJECT_ROOT + "/" + projectName + "/tasks";

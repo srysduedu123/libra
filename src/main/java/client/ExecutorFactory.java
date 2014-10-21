@@ -3,8 +3,6 @@ package client;
 import common.exception.ExecutorException;
 import common.exception.OperationOutOfDateException;
 import common.exception.WrongStateException;
-import test.AnotherTestExecutor;
-import test.TestExecutor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,29 +10,33 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
- * User: xccui
+ * A factory for all registered executors
+ * @author : xccui
  * Date: 13-10-14
- * Time: 上午9:43
- * To change this template use File | Settings | File Templates.
+ * Time: 9:43
  */
 public class ExecutorFactory {
     private IExecutor currentExecutor;
     private Map<String, IExecutor> executorMap;
     private state currentState;
-    private long taskVersion;
+    private long executorVersion;
 
-    private enum state {UNLOADED, LOADED, STARTED}
+    private enum state {UNLOADED, LOADED, STARTED};
 
 
     public ExecutorFactory() {
         executorMap = new HashMap<String, IExecutor>();
         currentState = state.UNLOADED;
-        taskVersion = 0;
-        executorMap.put("project1", new TestExecutor());
-        executorMap.put("project2", new AnotherTestExecutor());
+        executorVersion = 0;
     }
 
+    public void loadExecutorsFromFile(String executorConfFile){
+
+    }
+
+    public void addExecutor(String name, IExecutor executor){
+       executorMap.put(name, executor);
+    }
     public synchronized void loadExecutor(String projectName) throws ExecutorException {
         if (currentState != state.UNLOADED) {
             throw new WrongStateException("Expected state:" + state.UNLOADED + ", but got:" + currentState);
@@ -63,29 +65,22 @@ public class ExecutorFactory {
             throw new WrongStateException("Expected state:" + state.LOADED + ", but got:" + currentState);
         }
         currentExecutor.start(taskList);
-        taskVersion++;
+        executorVersion++;
         currentState = state.STARTED;
     }
 
     public synchronized void stopCurrentExecutor() throws WrongStateException {
-        if (currentState == state.UNLOADED) {
-            throw new WrongStateException("Expected state:" + state.STARTED + ", but got:" + currentState);
-        }
         currentExecutor.stop();
-        taskVersion++;
+        executorVersion++;
         currentState = state.UNLOADED;
     }
 
     public synchronized List<String> getCurrentTaskList() {
         if (null == currentExecutor || null == currentExecutor.getMyTaskList()) {
-            return new ArrayList<String>(0);
+            return new ArrayList<>(0);
         } else {
             return currentExecutor.getMyTaskList();
         }
-    }
-
-    public synchronized long getCurrentTaskVersion() {
-        return taskVersion;
     }
 
     public boolean isProjectSupported(String projectName) {
