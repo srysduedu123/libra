@@ -336,7 +336,6 @@ public class LibraServer implements Watcher {
     }
 
     public static void main(String[] args) throws IOException, KeeperException, InterruptedException {
-        LibraServer watcher = new LibraServer("192.168.238.10:2181", 10000);
-        watcher.printStatus();
+    	
     }
 }

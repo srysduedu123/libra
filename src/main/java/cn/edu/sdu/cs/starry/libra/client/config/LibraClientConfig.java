@@ -14,9 +14,10 @@ public class LibraClientConfig {
     private static Map<String, String> defaultPropertyMap = new HashMap<String, String>();
 
     public static final String RETRY_TIMES_KEY = "retryTimes";
-    private static final String RETRY_TIMES_DEFAULT = "5";
+    private static final String RETRY_TIMES_DEFAULT = "50";
     public static final String RETRY_INTERVAL_KEY = "retryInterval";
     private static final String RETRY_INTERVAL_DEFAULT = "1000";
+    public static final int MAX_TASKS = 20;
 
 
 

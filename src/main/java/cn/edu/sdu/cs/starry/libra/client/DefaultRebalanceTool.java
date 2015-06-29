@@ -3,6 +3,8 @@ package cn.edu.sdu.cs.starry.libra.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cn.edu.sdu.cs.starry.libra.client.config.LibraClientConfig;
+
 import java.util.*;
 
 /**
@@ -26,7 +28,11 @@ public class DefaultRebalanceTool implements IRebalanceTool {
         List<String> myTaskList = new LinkedList<String>();
         for (int i = 0; i < immutableTaskList.size(); i++) {
             if (i % workerNum == myOrder) {
-                myTaskList.add(immutableTaskList.get(i));
+            	if(myTaskList.size() < LibraClientConfig.MAX_TASKS){
+            		 myTaskList.add(immutableTaskList.get(i));
+            	}else{
+            		break;
+            	}    
             }
         }
         LOG.info("Calculated my tasks: " + myTaskList);
